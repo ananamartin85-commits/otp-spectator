@@ -1,13 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 
-// El componente que dibuja cada jugador en la lista del Modal
 const LiveParticipant = ({ part, patchVersion }) => (
   <div className={`flex items-center gap-3 p-2 rounded-xl border ${part.isTarget ? 'bg-[#ffb800]/10 border-[#ffb800]/30' : 'bg-white/5 border-transparent'}`}>
     <img 
       src={`https://ddragon.leagueoflegends.com/cdn/${patchVersion}/img/champion/${part.championName}.png`}
       alt={part.championName}
       className="w-9 h-9 rounded-full border border-[#2a3655] bg-[#0d1016]"
-      // Chaleco antibalas: Si no encuentra la foto, pone un ícono vacío
       onError={(e) => { e.target.src = "https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/champion-icons/-1.png"; }}
     />
     <div className="flex flex-col min-w-0">
@@ -28,11 +26,8 @@ export default function App() {
   const [otpList, setOtpList] = useState([]);
   const [data, setData] = useState({});
   const [selectedPlayer, setSelectedPlayer] = useState(null);
-  
-  // Guardamos dinámicamente la última versión del juego
-  const [patchVersion, setPatchVersion] = useState("14.7.1"); 
+  const [patchVersion, setPatchVersion] = useState("14.7.1");
 
-  // Buscar el parche actual apenas entramos a la web
   useEffect(() => {
     fetch("https://ddragon.leagueoflegends.com/api/versions.json")
       .then(res => res.json())
@@ -41,18 +36,16 @@ export default function App() {
           setPatchVersion(versions[0]);
         }
       })
-      .catch(e => console.error("Error buscando versión del juego", e));
+      .catch(e => console.error("Error buscando parche", e));
   }, []);
 
-  // Carga inicial de la lista desde tu backend
   useEffect(() => {
     fetch("https://otp-spectator-backend.onrender.com/api/init-targets")
       .then(res => res.json())
       .then(setOtpList)
-      .catch(e => console.error("Error al conectar con Render", e));
+      .catch(e => console.error("Error cargando objetivos", e));
   }, []);
 
-  // Escaneo continuo cada 2 minutos
   const fetchData = async () => {
     if (otpList.length === 0) return;
     
@@ -72,7 +65,6 @@ export default function App() {
           [otp.name]: result
         }));
         
-        // Un respiro para la API
         await new Promise(r => setTimeout(r, 1000));
       } catch (e) { 
         console.error(e); 
@@ -91,7 +83,6 @@ export default function App() {
   return (
     <div className="min-h-screen p-6 md:p-10 selection:bg-[#ffb800] selection:text-black">
       
-      {/* HEADER HEXTECH / EDUCATIVO */}
       <header className="max-w-7xl mx-auto mb-16 flex flex-col items-center border-b border-[#1e2328] pb-10">
           <h1 className="text-5xl font-extrabold tracking-tighter text-white italic flex items-center justify-center gap-2">
             SPECTATE <span className="text-cyan-400">TOOL</span>
@@ -99,7 +90,6 @@ export default function App() {
           <p className="text-[#c8aa6e] text-xs font-bold tracking-[0.5em] uppercase mt-2 opacity-80">Educational Dashboard v2.4</p>
       </header>
 
-      {/* GRILLA PRINCIPAL */}
       <main className="max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-5">
         {otpList.map((otp) => {
           const info = data[otp.name];
@@ -120,7 +110,6 @@ export default function App() {
                   : 'hover:border-slate-600'
               }`}
             >
-              {/* Marca de agua de fondo */}
               <img 
                 src={`https://ddragon.leagueoflegends.com/cdn/img/champion/splash/${displayChamp}_0.jpg`}
                 className="absolute inset-0 w-full h-full object-cover opacity-[0.015] grayscale pointer-events-none group-hover:opacity-10 transition-opacity"
@@ -128,7 +117,6 @@ export default function App() {
                 onError={(e) => { e.target.style.display = 'none'; }}
               />
 
-              {/* Ícono de campeón principal */}
               <div className={`relative w-20 h-20 rounded-full flex items-center justify-center mb-5 flex-shrink-0 ${
                   isPlaying ? 'shadow-[0_0_30px_rgba(200,170,110,0.5)]' : 
                   isQueue ? 'shadow-[0_0_30px_rgba(239,68,68,0.5)]' : 
@@ -148,7 +136,6 @@ export default function App() {
                   />
               </div>
 
-              {/* Textos y estados */}
               <div className="text-center z-10 w-full">
                 <h2 className={`text-base font-black uppercase tracking-wider truncate text-white leading-tight`}>
                   {otp.name}
@@ -179,7 +166,6 @@ export default function App() {
         })}
       </main>
 
-      {/* MODAL CON LA PARTIDA EN VIVO */}
       {selectedPlayer && data[selectedPlayer] && data[selectedPlayer].status === 'IN_GAME' && (
         <div 
           className="fixed inset-0 bg-[#030408]/90 backdrop-blur-xl flex items-center justify-center z-50 p-4"
