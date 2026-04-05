@@ -14,10 +14,10 @@ const [patchVersion, setPatchVersion] = useState("14.7.1"); // Fallback por si f
       .catch(e => console.error("Error cargando versión", e));
   }, []);
 
-const LiveParticipant = ({ part }) => (
+const LiveParticipant = ({ part, patchVersion }) => (
   <div className={`flex items-center gap-3 p-2 rounded-xl border ${part.isTarget ? 'bg-[#ffb800]/10 border-[#ffb800]/30' : 'bg-white/5 border-transparent'}`}>
     <img 
-      src={`https://ddragon.leagueoflegends.com/cdn/14.7.1/img/champion/${part.championName}.png`}
+      src={`https://ddragon.leagueoflegends.com/cdn/${patchVersion}/img/champion/${part.championName}.png`}
       alt={part.championName}
       className="w-9 h-9 rounded-full border border-[#2a3655]"
     />
@@ -130,7 +130,7 @@ export default function App() {
                   } opacity-30`}></div>
                   
                   <img 
-                    src={`https://ddragon.leagueoflegends.com/cdn/14.7.1/img/champion/${displayChamp}.png`}
+                    src={`https://ddragon.leagueoflegends.com/cdn/${patchVersion}/img/champion/${displayChamp}.png`}
                     className="w-full h-full rounded-full object-cover border-4 border-black"
                     alt="Champ"
                   />
@@ -185,7 +185,7 @@ export default function App() {
 
             <div className="mb-10 text-center flex flex-col items-center">
               <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-cyan-500 mb-4 flex-shrink-0">
-                  <img src={`https://ddragon.leagueoflegends.com/cdn/14.7.1/img/champion/${data[selectedPlayer].participants.find(p => p.isTarget)?.championName}.png`} className="w-full h-full"/>
+                  <img src={`https://ddragon.leagueoflegends.com/cdn/${patchVersion}/img/champion/${data[selectedPlayer].participants.find(p => p.isTarget)?.championName}.png`} className="w-full h-full"/>
               </div>
               <h3 className="text-3xl font-black text-white italic uppercase tracking-tighter">
                 {selectedPlayer} <span className="text-cyan-400">MATCH</span>
@@ -203,8 +203,8 @@ export default function App() {
                   </p>
                 </div>
                 {data[selectedPlayer].participants.filter(p => p.teamId === 100).map((p, i) => (
-                  <LiveParticipant key={i} part={p} />
-                ))}
+  <LiveParticipant key={i} part={p} patchVersion={patchVersion} />
+))}
               </div>
 
               <div className="space-y-2">
@@ -213,9 +213,9 @@ export default function App() {
                       <span className="w-1.5 h-1.5 bg-red-500 rounded-full"></span> Red Team
                   </p>
                 </div>
-                {data[selectedPlayer].participants.filter(p => p.teamId === 200).map((p, i) => (
-                  <LiveParticipant key={i} part={p} />
-                ))}
+               {data[selectedPlayer].participants.filter(p => p.teamId === 200).map((p, i) => (
+  <LiveParticipant key={i} part={p} patchVersion={patchVersion} />
+))}
               </div>
             </div>
           </div>
