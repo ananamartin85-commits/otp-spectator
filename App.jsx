@@ -1,25 +1,14 @@
 import React, { useState, useEffect } from 'react';
 
-const [patchVersion, setPatchVersion] = useState("14.7.1"); // Fallback por si falla
-
-  // NUEVO: Buscar el parche más reciente al cargar la página
-  useEffect(() => {
-    fetch("https://ddragon.leagueoflegends.com/api/versions.json")
-      .then(res => res.json())
-      .then(versions => {
-        if (versions && versions.length > 0) {
-          setPatchVersion(versions[0]); // versions[0] es siempre el último parche
-        }
-      })
-      .catch(e => console.error("Error cargando versión", e));
-  }, []);
-
+// El componente que dibuja cada jugador en la lista del Modal
 const LiveParticipant = ({ part, patchVersion }) => (
   <div className={`flex items-center gap-3 p-2 rounded-xl border ${part.isTarget ? 'bg-[#ffb800]/10 border-[#ffb800]/30' : 'bg-white/5 border-transparent'}`}>
     <img 
       src={`https://ddragon.leagueoflegends.com/cdn/${patchVersion}/img/champion/${part.championName}.png`}
       alt={part.championName}
-      className="w-9 h-9 rounded-full border border-[#2a3655]"
+      className="w-9 h-9 rounded-full border border-[#2a3655] bg-[#0d1016]"
+      // Chaleco antibalas: Si no encuentra la foto, pone un ícono vacío
+      onError={(e) => { e.target.src = "https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/champion-icons/-1.png"; }}
     />
     <div className="flex flex-col min-w-0">
       <div className="flex items-baseline gap-1 truncate">
@@ -39,13 +28,31 @@ export default function App() {
   const [otpList, setOtpList] = useState([]);
   const [data, setData] = useState({});
   const [selectedPlayer, setSelectedPlayer] = useState(null);
+  
+  // Guardamos dinámicamente la última versión del juego
+  const [patchVersion, setPatchVersion] = useState("14.7.1"); 
 
+  // Buscar el parche actual apenas entramos a la web
+  useEffect(() => {
+    fetch("https://ddragon.leagueoflegends.com/api/versions.json")
+      .then(res => res.json())
+      .then(versions => {
+        if (versions && versions.length > 0) {
+          setPatchVersion(versions[0]);
+        }
+      })
+      .catch(e => console.error("Error buscando versión del juego", e));
+  }, []);
+
+  // Carga inicial de la lista desde tu backend
   useEffect(() => {
     fetch("https://otp-spectator-backend.onrender.com/api/init-targets")
       .then(res => res.json())
-      .then(setOtpList); // Ahora otpList trae el { name, tag, puuid, defaultChamp } de la API
+      .then(setOtpList)
+      .catch(e => console.error("Error al conectar con Render", e));
   }, []);
 
+  // Escaneo continuo cada 2 minutos
   const fetchData = async () => {
     if (otpList.length === 0) return;
     
@@ -54,7 +61,6 @@ export default function App() {
         const res = await fetch(`https://otp-spectator-backend.onrender.com/api/check/${otp.puuid}`);
         
         if (!res.ok) {
-          console.warn(`Rate limit en ${otp.name}. Esperando...`);
           await new Promise(r => setTimeout(r, 2000));
           continue; 
         }
@@ -66,6 +72,7 @@ export default function App() {
           [otp.name]: result
         }));
         
+        // Un respiro para la API
         await new Promise(r => setTimeout(r, 1000));
       } catch (e) { 
         console.error(e); 
@@ -84,20 +91,21 @@ export default function App() {
   return (
     <div className="min-h-screen p-6 md:p-10 selection:bg-[#ffb800] selection:text-black">
       
+      {/* HEADER HEXTECH / EDUCATIVO */}
       <header className="max-w-7xl mx-auto mb-16 flex flex-col items-center border-b border-[#1e2328] pb-10">
           <h1 className="text-5xl font-extrabold tracking-tighter text-white italic flex items-center justify-center gap-2">
             SPECTATE <span className="text-cyan-400">TOOL</span>
           </h1>
-          <p className="text-[#c8aa6e] text-xs font-bold tracking-[0.5em] uppercase mt-2 opacity-80"> Overwatch System v2.3</p>
+          <p className="text-[#c8aa6e] text-xs font-bold tracking-[0.5em] uppercase mt-2 opacity-80">Educational Dashboard v2.4</p>
       </header>
 
+      {/* GRILLA PRINCIPAL */}
       <main className="max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-5">
         {otpList.map((otp) => {
           const info = data[otp.name];
           const isPlaying = info?.status === 'IN_GAME';
           const isQueue = info?.status === 'OFFLINE' && info?.last_game_ago < 10;
           
-          // Magia acá: Ahora usa el otp.defaultChamp que vino del JSON de Python
           const displayChamp = isPlaying ? info.participants.find(p => p.isTarget)?.championName : otp.defaultChamp;
 
           return (
@@ -112,12 +120,15 @@ export default function App() {
                   : 'hover:border-slate-600'
               }`}
             >
+              {/* Marca de agua de fondo */}
               <img 
                 src={`https://ddragon.leagueoflegends.com/cdn/img/champion/splash/${displayChamp}_0.jpg`}
                 className="absolute inset-0 w-full h-full object-cover opacity-[0.015] grayscale pointer-events-none group-hover:opacity-10 transition-opacity"
                 alt=""
+                onError={(e) => { e.target.style.display = 'none'; }}
               />
 
+              {/* Ícono de campeón principal */}
               <div className={`relative w-20 h-20 rounded-full flex items-center justify-center mb-5 flex-shrink-0 ${
                   isPlaying ? 'shadow-[0_0_30px_rgba(200,170,110,0.5)]' : 
                   isQueue ? 'shadow-[0_0_30px_rgba(239,68,68,0.5)]' : 
@@ -131,11 +142,13 @@ export default function App() {
                   
                   <img 
                     src={`https://ddragon.leagueoflegends.com/cdn/${patchVersion}/img/champion/${displayChamp}.png`}
-                    className="w-full h-full rounded-full object-cover border-4 border-black"
+                    className="w-full h-full rounded-full object-cover border-4 border-black bg-[#0d1016]"
                     alt="Champ"
+                    onError={(e) => { e.target.src = "https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/champion-icons/-1.png"; }}
                   />
               </div>
 
+              {/* Textos y estados */}
               <div className="text-center z-10 w-full">
                 <h2 className={`text-base font-black uppercase tracking-wider truncate text-white leading-tight`}>
                   {otp.name}
@@ -148,7 +161,7 @@ export default function App() {
                     </div>
                   ) : isQueue ? (
                     <div className="bg-red-500/10 text-red-400 text-[9px] font-black px-3 py-1 rounded uppercase tracking-wider inline-flex items-center gap-1.5">
-                      <div className="w-1.5 h-1.5 bg-red-500 rounded-full animate-pulse"></div> EDUCATIONAL SPECTATE TOOL
+                      <div className="w-1.5 h-1.5 bg-red-500 rounded-full animate-pulse"></div> TARGET READY
                     </div>
                   ) : (
                     <div className="text-slate-600 text-[9px] font-black px-3 py-1 uppercase tracking-wider inline-flex items-center gap-1.5">
@@ -166,7 +179,7 @@ export default function App() {
         })}
       </main>
 
-      {/* MODAL PARTIDA EN VIVO */}
+      {/* MODAL CON LA PARTIDA EN VIVO */}
       {selectedPlayer && data[selectedPlayer] && data[selectedPlayer].status === 'IN_GAME' && (
         <div 
           className="fixed inset-0 bg-[#030408]/90 backdrop-blur-xl flex items-center justify-center z-50 p-4"
@@ -185,7 +198,11 @@ export default function App() {
 
             <div className="mb-10 text-center flex flex-col items-center">
               <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-cyan-500 mb-4 flex-shrink-0">
-                  <img src={`https://ddragon.leagueoflegends.com/cdn/${patchVersion}/img/champion/${data[selectedPlayer].participants.find(p => p.isTarget)?.championName}.png`} className="w-full h-full"/>
+                  <img 
+                    src={`https://ddragon.leagueoflegends.com/cdn/${patchVersion}/img/champion/${data[selectedPlayer].participants.find(p => p.isTarget)?.championName}.png`} 
+                    className="w-full h-full bg-[#0d1016]"
+                    onError={(e) => { e.target.src = "https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/champion-icons/-1.png"; }}
+                  />
               </div>
               <h3 className="text-3xl font-black text-white italic uppercase tracking-tighter">
                 {selectedPlayer} <span className="text-cyan-400">MATCH</span>
@@ -203,8 +220,8 @@ export default function App() {
                   </p>
                 </div>
                 {data[selectedPlayer].participants.filter(p => p.teamId === 100).map((p, i) => (
-  <LiveParticipant key={i} part={p} patchVersion={patchVersion} />
-))}
+                  <LiveParticipant key={i} part={p} patchVersion={patchVersion} />
+                ))}
               </div>
 
               <div className="space-y-2">
@@ -213,9 +230,9 @@ export default function App() {
                       <span className="w-1.5 h-1.5 bg-red-500 rounded-full"></span> Red Team
                   </p>
                 </div>
-               {data[selectedPlayer].participants.filter(p => p.teamId === 200).map((p, i) => (
-  <LiveParticipant key={i} part={p} patchVersion={patchVersion} />
-))}
+                {data[selectedPlayer].participants.filter(p => p.teamId === 200).map((p, i) => (
+                  <LiveParticipant key={i} part={p} patchVersion={patchVersion} />
+                ))}
               </div>
             </div>
           </div>
