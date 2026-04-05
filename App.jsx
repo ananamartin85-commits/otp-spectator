@@ -1,5 +1,19 @@
 import React, { useState, useEffect } from 'react';
 
+const [patchVersion, setPatchVersion] = useState("14.7.1"); // Fallback por si falla
+
+  // NUEVO: Buscar el parche más reciente al cargar la página
+  useEffect(() => {
+    fetch("https://ddragon.leagueoflegends.com/api/versions.json")
+      .then(res => res.json())
+      .then(versions => {
+        if (versions && versions.length > 0) {
+          setPatchVersion(versions[0]); // versions[0] es siempre el último parche
+        }
+      })
+      .catch(e => console.error("Error cargando versión", e));
+  }, []);
+
 const LiveParticipant = ({ part }) => (
   <div className={`flex items-center gap-3 p-2 rounded-xl border ${part.isTarget ? 'bg-[#ffb800]/10 border-[#ffb800]/30' : 'bg-white/5 border-transparent'}`}>
     <img 
