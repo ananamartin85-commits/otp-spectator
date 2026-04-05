@@ -1,9 +1,23 @@
 import React, { useState, useEffect } from 'react';
 
+const [patchVersion, setPatchVersion] = useState("14.7.1"); // Fallback por si falla
+
+  // NUEVO: Buscar el parche más reciente al cargar la página
+  useEffect(() => {
+    fetch("https://ddragon.leagueoflegends.com/api/versions.json")
+      .then(res => res.json())
+      .then(versions => {
+        if (versions && versions.length > 0) {
+          setPatchVersion(versions[0]); // versions[0] es siempre el último parche
+        }
+      })
+      .catch(e => console.error("Error cargando versión", e));
+  }, []);
+
 const LiveParticipant = ({ part }) => (
   <div className={`flex items-center gap-3 p-2 rounded-xl border ${part.isTarget ? 'bg-[#ffb800]/10 border-[#ffb800]/30' : 'bg-white/5 border-transparent'}`}>
     <img 
-      src={`https://ddragon.leagueoflegends.com/cdn/14.7.1/img/champion/${part.championName}.png`}
+      src={`https://ddragon.leagueoflegends.com/cdn/${patchVersion}/img/champion/${part.championName}.png`}
       alt={part.championName}
       className="w-9 h-9 rounded-full border border-[#2a3655]"
     />
@@ -27,7 +41,7 @@ export default function App() {
   const [selectedPlayer, setSelectedPlayer] = useState(null);
 
   useEffect(() => {
-    fetch("http://localhost:8000/api/init-targets")
+    fetch("https://otp-spectator-backend.onrender.com/api/init-targets")
       .then(res => res.json())
       .then(setOtpList); // Ahora otpList trae el { name, tag, puuid, defaultChamp } de la API
   }, []);
@@ -37,7 +51,7 @@ export default function App() {
     
     for (let otp of otpList) {
       try {
-        const res = await fetch(`http://localhost:8000/api/check/${otp.puuid}`);
+        const res = await fetch(`https://otp-spectator-backend.onrender.com/api/check/${otp.puuid}`);
         
         if (!res.ok) {
           console.warn(`Rate limit en ${otp.name}. Esperando...`);
@@ -116,7 +130,7 @@ export default function App() {
                   } opacity-30`}></div>
                   
                   <img 
-                    src={`https://ddragon.leagueoflegends.com/cdn/14.7.1/img/champion/${displayChamp}.png`}
+                    src={`https://ddragon.leagueoflegends.com/cdn/${patchVersion}/img/champion/${displayChamp}.png`}
                     className="w-full h-full rounded-full object-cover border-4 border-black"
                     alt="Champ"
                   />
@@ -171,7 +185,7 @@ export default function App() {
 
             <div className="mb-10 text-center flex flex-col items-center">
               <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-cyan-500 mb-4 flex-shrink-0">
-                  <img src={`https://ddragon.leagueoflegends.com/cdn/14.7.1/img/champion/${data[selectedPlayer].participants.find(p => p.isTarget)?.championName}.png`} className="w-full h-full"/>
+                  <img src={`https://ddragon.leagueoflegends.com/cdn/${patchVersion}/img/champion/${data[selectedPlayer].participants.find(p => p.isTarget)?.championName}.png`} className="w-full h-full"/>
               </div>
               <h3 className="text-3xl font-black text-white italic uppercase tracking-tighter">
                 {selectedPlayer} <span className="text-cyan-400">MATCH</span>
