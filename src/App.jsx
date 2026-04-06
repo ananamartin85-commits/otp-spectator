@@ -1,5 +1,20 @@
 import React, { useState, useEffect } from 'react';
 
+// Colores para cada liga de LoL
+const tierColors = {
+  IRON: "text-gray-500",
+  BRONZE: "text-amber-700",
+  SILVER: "text-slate-400",
+  GOLD: "text-yellow-400",
+  PLATINUM: "text-teal-400",
+  EMERALD: "text-emerald-400",
+  DIAMOND: "text-blue-400",
+  MASTER: "text-purple-400",
+  GRANDMASTER: "text-red-500",
+  CHALLENGER: "text-amber-300",
+  UNRANKED: "text-slate-600"
+};
+
 const LiveParticipant = ({ part, patchVersion }) => (
   <div className={`flex items-center gap-3 p-2 rounded-xl border ${part.isTarget ? 'bg-[#ffb800]/10 border-[#ffb800]/30' : 'bg-white/5 border-transparent'}`}>
     <img 
@@ -8,7 +23,8 @@ const LiveParticipant = ({ part, patchVersion }) => (
       className="w-9 h-9 rounded-full border border-[#2a3655] bg-[#0d1016]"
       onError={(e) => { e.target.src = "https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/champion-icons/-1.png"; }}
     />
-    <div className="flex flex-col min-w-0">
+    
+    <div className="flex flex-col min-w-0 flex-1">
       <div className="flex items-baseline gap-1 truncate">
         <span className={`text-sm font-bold truncate uppercase tracking-tight ${part.isTarget ? 'text-[#ffb800]' : 'text-slate-200'}`}>
           {part.summonerName}
@@ -19,6 +35,22 @@ const LiveParticipant = ({ part, patchVersion }) => (
       </div>
       <span className="text-[10px] text-slate-500 uppercase tracking-wider font-medium">{part.championName}</span>
     </div>
+
+    {/* SECCIÓN DE RANK Y WINRATE OP.GG */}
+    {part.rank && (
+      <div className="flex flex-col items-end text-right ml-2 flex-shrink-0">
+          <span className={`text-[10px] font-black uppercase tracking-wider ${tierColors[part.rank.tier] || 'text-slate-500'}`}>
+              {part.rank.tier} {part.rank.rank}
+          </span>
+          {part.rank.tier !== 'UNRANKED' ? (
+              <span className={`text-[9px] font-bold ${part.rank.wr >= 55 ? 'text-emerald-400' : part.rank.wr < 48 ? 'text-red-400' : 'text-slate-400'}`}>
+                  {part.rank.wr}% WR <span className="opacity-40 font-medium">({part.rank.total}G)</span>
+              </span>
+          ) : (
+              <span className="text-[9px] text-slate-600 font-medium tracking-widest">---</span>
+          )}
+      </div>
+    )}
   </div>
 );
 
@@ -87,7 +119,7 @@ export default function App() {
           <h1 className="text-5xl font-extrabold tracking-tighter text-white italic flex items-center justify-center gap-2">
             SPECTATE <span className="text-cyan-400">TOOL</span>
           </h1>
-          <p className="text-[#c8aa6e] text-xs font-bold tracking-[0.5em] uppercase mt-2 opacity-80">Educational Dashboard v2.4</p>
+          <p className="text-[#c8aa6e] text-xs font-bold tracking-[0.5em] uppercase mt-2 opacity-80">Educational Dashboard v2.5</p>
       </header>
 
       <main className="max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-5">
@@ -215,8 +247,8 @@ export default function App() {
               </div>
 
               <div className="space-y-2">
-                <div className="border-b border-[#1e2328] pb-3 mb-5 text-right">
-                  <p className="text-xs font-black text-red-500 uppercase tracking-[0.2em] px-2 flex items-center gap-2 justify-end">
+                <div className="border-b border-[#1e2328] pb-3 mb-5 text-right flex flex-col">
+                  <p className="text-xs font-black text-red-500 uppercase tracking-[0.2em] px-2 flex items-center gap-2 justify-end self-end">
                       <span className="w-1.5 h-1.5 bg-red-500 rounded-full"></span> Red Team
                   </p>
                 </div>
