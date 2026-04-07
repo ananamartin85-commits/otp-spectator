@@ -84,7 +84,10 @@ export default function App() {
     
     for (let otp of otpList) {
       try {
-        const res = await fetch(`https://otp-spectator-backend.onrender.com/api/check/${otp.puuid}`);
+        // FIX: Parámetro de tiempo para romper el caché del navegador
+        const res = await fetch(`https://otp-spectator-backend.onrender.com/api/check/${otp.puuid}?t=${new Date().getTime()}`, {
+          cache: 'no-store'
+        });
         
         if (!res.ok) {
           await new Promise(r => setTimeout(r, 2000));
