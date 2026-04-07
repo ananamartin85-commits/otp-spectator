@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 
-// Colores para cada liga de LoL
 const tierColors = {
   IRON: "text-gray-500",
   BRONZE: "text-amber-700",
@@ -36,7 +35,6 @@ const LiveParticipant = ({ part, patchVersion }) => (
       <span className="text-[10px] text-slate-500 uppercase tracking-wider font-medium">{part.championName}</span>
     </div>
 
-    {/* SECCIÓN DE RANK Y WINRATE OP.GG */}
     {part.rank && (
       <div className="flex flex-col items-end text-right ml-2 flex-shrink-0">
           <span className={`text-[10px] font-black uppercase tracking-wider ${tierColors[part.rank.tier] || 'text-slate-500'}`}>
@@ -59,6 +57,9 @@ export default function App() {
   const [data, setData] = useState({});
   const [selectedPlayer, setSelectedPlayer] = useState(null);
   const [patchVersion, setPatchVersion] = useState("14.7.1");
+  
+  // ESTADO NUEVO: Empieza mostrando los PROS
+  const [activeTab, setActiveTab] = useState('PRO'); 
 
   useEffect(() => {
     fetch("https://ddragon.leagueoflegends.com/api/versions.json")
@@ -112,6 +113,9 @@ export default function App() {
     }
   }, [otpList]);
 
+  // FILTRO MÁGICO: Solo mostramos los que coinciden con la pestaña actual
+  const displayedPlayers = otpList.filter(otp => otp.category === activeTab);
+
   return (
     <div className="min-h-screen p-6 md:p-10 selection:bg-[#ffb800] selection:text-black">
       
@@ -119,14 +123,32 @@ export default function App() {
           <h1 className="text-5xl font-extrabold tracking-tighter text-white italic flex items-center justify-center gap-2">
             SPECTATE <span className="text-cyan-400">TOOL</span>
           </h1>
-          <p className="text-[#c8aa6e] text-xs font-bold tracking-[0.5em] uppercase mt-2 opacity-80">Educational Dashboard v2.5</p>
+          <p className="text-[#c8aa6e] text-xs font-bold tracking-[0.5em] uppercase mt-2 opacity-80">Educational Dashboard v3.0</p>
+          
+          {/* LOS BOTONES INTERACTIVOS */}
+          <div className="flex bg-[#0d1016] rounded-full p-1.5 border border-[#1e2328] mt-8 shadow-lg">
+            <button
+              onClick={() => setActiveTab('PRO')}
+              className={`px-8 py-2.5 rounded-full text-xs font-black uppercase tracking-[0.15em] transition-all duration-300 ${activeTab === 'PRO' ? 'bg-[#c8aa6e] text-black shadow-[0_0_15px_rgba(200,170,110,0.4)]' : 'text-slate-500 hover:text-slate-300'}`}
+            >
+              Pro Players
+            </button>
+            <button
+              onClick={() => setActiveTab('OTP')}
+              className={`px-8 py-2.5 rounded-full text-xs font-black uppercase tracking-[0.15em] transition-all duration-300 ${activeTab === 'OTP' ? 'bg-[#c8aa6e] text-black shadow-[0_0_15px_rgba(200,170,110,0.4)]' : 'text-slate-500 hover:text-slate-300'}`}
+            >
+              OTP Mains
+            </button>
+          </div>
       </header>
 
       <main className="max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-5">
-        {otpList.map((otp) => {
+        {displayedPlayers.map((otp) => {
           const info = data[otp.name];
           const isPlaying = info?.status === 'IN_GAME';
-          const isQueue = info?.status === 'OFFLINE' && info?.last_game_ago < 10;
+          const isOffline = info?.status === 'OFFLINE';
+          const isUnknown = info?.status === 'UNKNOWN';
+          const isQueue = isOffline && info?.last_game_ago < 10;
           
           let displayChamp = otp.defaultChamp;
           if (isPlaying && info.participants) {
@@ -186,15 +208,29 @@ export default function App() {
                     <div className="bg-red-500/10 text-red-400 text-[9px] font-black px-3 py-1 rounded uppercase tracking-wider inline-flex items-center gap-1.5">
                       <div className="w-1.5 h-1.5 bg-red-500 rounded-full animate-pulse"></div> TARGET READY
                     </div>
-                  ) : (
+                  ) : isOffline ? (
                     <div className="text-slate-600 text-[9px] font-black px-3 py-1 uppercase tracking-wider inline-flex items-center gap-1.5">
                       IDLE
+                    </div>
+                  ) : isUnknown ? (
+                    <div className="text-slate-600 text-[9px] font-black px-3 py-1 uppercase tracking-wider inline-flex items-center gap-1.5 opacity-50">
+                      NO MATCHES
+                    </div>
+                  ) : (
+                    <div className="text-slate-600 text-[9px] font-black px-3 py-1 uppercase tracking-wider inline-flex items-center gap-1.5 animate-pulse">
+                      SCANNING...
                     </div>
                   )
                 }
                 
                 <p className="text-[10px] text-slate-500 mt-2 font-medium">
-                  {isPlaying ? `${info.time}m elapsed` : info?.last_game_ago ? `${info.last_game_ago}m ago` : 'scanning'}
+                  {isPlaying 
+                    ? `${info.time}m elapsed` 
+                    : isOffline 
+                    ? `${info.last_game_ago}m ago` 
+                    : isUnknown
+                    ? 'No data available'
+                    : 'fetching data'}
                 </p>
               </div>
             </div>
@@ -202,6 +238,7 @@ export default function App() {
         })}
       </main>
 
+      {/* MODAL DE PARTIDA EN VIVO */}
       {selectedPlayer && data[selectedPlayer] && data[selectedPlayer].status === 'IN_GAME' && (
         <div 
           className="fixed inset-0 bg-[#030408]/90 backdrop-blur-xl flex items-center justify-center z-50 p-4"
