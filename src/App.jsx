@@ -1,12 +1,5 @@
 import React, { useState, useEffect } from 'react';
 
-const tierColors = {
-  IRON: "text-gray-500", BRONZE: "text-amber-700", SILVER: "text-slate-400",
-  GOLD: "text-yellow-400", PLATINUM: "text-teal-400", EMERALD: "text-emerald-400",
-  DIAMOND: "text-blue-400", MASTER: "text-purple-400", GRANDMASTER: "text-red-500",
-  CHALLENGER: "text-amber-300", UNRANKED: "text-slate-600"
-};
-
 const LiveParticipant = ({ part, patchVersion, targetPuuid }) => {
   const isTracked = part.isTrackedPlayer || part.puuid === targetPuuid;
   return (
@@ -28,20 +21,6 @@ const LiveParticipant = ({ part, patchVersion, targetPuuid }) => {
         </div>
         <span className="text-[10px] text-slate-500 uppercase tracking-wider font-medium">{part.championName}</span>
       </div>
-      {part.rank && (
-        <div className="flex flex-col items-end text-right ml-2 flex-shrink-0">
-            <span className={`text-[10px] font-black uppercase tracking-wider ${tierColors[part.rank.tier] || 'text-slate-500'}`}>
-                {part.rank.tier} {part.rank.rank}
-            </span>
-            {part.rank.tier !== 'UNRANKED' ? (
-                <span className={`text-[9px] font-bold ${part.rank.wr >= 55 ? 'text-emerald-400' : part.rank.wr < 48 ? 'text-red-400' : 'text-slate-400'}`}>
-                    {part.rank.wr}% WR <span className="opacity-40 font-medium">({part.rank.total}G)</span>
-                </span>
-            ) : (
-                <span className="text-[9px] text-slate-600 font-medium tracking-widest">---</span>
-            )}
-        </div>
-      )}
     </div>
   );
 };
