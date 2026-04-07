@@ -57,9 +57,7 @@ export default function App() {
   const [data, setData] = useState({});
   const [selectedPlayer, setSelectedPlayer] = useState(null);
   const [patchVersion, setPatchVersion] = useState("14.7.1");
-  
-  // ESTADO NUEVO: Empieza mostrando los PROS
-  const [activeTab, setActiveTab] = useState('PRO'); 
+  const [activeTab, setActiveTab] = useState('PRO');
 
   useEffect(() => {
     fetch("https://ddragon.leagueoflegends.com/api/versions.json")
@@ -84,7 +82,6 @@ export default function App() {
     
     for (let otp of otpList) {
       try {
-        // FIX: Parámetro de tiempo para romper el caché del navegador
         const res = await fetch(`https://otp-spectator-backend.onrender.com/api/check/${otp.puuid}?t=${new Date().getTime()}`, {
           cache: 'no-store'
         });
@@ -116,7 +113,6 @@ export default function App() {
     }
   }, [otpList]);
 
-  // FILTRO MÁGICO: Solo mostramos los que coinciden con la pestaña actual
   const displayedPlayers = otpList.filter(otp => otp.category === activeTab);
 
   return (
@@ -126,9 +122,8 @@ export default function App() {
           <h1 className="text-5xl font-extrabold tracking-tighter text-white italic flex items-center justify-center gap-2">
             SPECTATE <span className="text-cyan-400">TOOL</span>
           </h1>
-          <p className="text-[#c8aa6e] text-xs font-bold tracking-[0.5em] uppercase mt-2 opacity-80">Educational Dashboard v3.0</p>
+          <p className="text-[#c8aa6e] text-xs font-bold tracking-[0.5em] uppercase mt-2 opacity-80">Educational Dashboard v3.1</p>
           
-          {/* LOS BOTONES INTERACTIVOS */}
           <div className="flex bg-[#0d1016] rounded-full p-1.5 border border-[#1e2328] mt-8 shadow-lg">
             <button
               onClick={() => setActiveTab('PRO')}
@@ -207,6 +202,10 @@ export default function App() {
                     <div className="bg-[#c8aa6e]/10 text-[#c8aa6e] text-[9px] font-black px-3 py-1 rounded uppercase tracking-wider inline-flex items-center gap-1.5">
                       <div className="w-1.5 h-1.5 bg-[#c8aa6e] rounded-full animate-pulse"></div> IN GAME
                     </div>
+                  ) : info?.status === 'RATE_LIMIT' ? (
+                    <div className="bg-red-900/30 text-red-500 text-[9px] font-black px-3 py-1 rounded uppercase tracking-wider inline-flex items-center gap-1.5 border border-red-900/50">
+                      API LIMIT
+                    </div>
                   ) : isQueue ? (
                     <div className="bg-red-500/10 text-red-400 text-[9px] font-black px-3 py-1 rounded uppercase tracking-wider inline-flex items-center gap-1.5">
                       <div className="w-1.5 h-1.5 bg-red-500 rounded-full animate-pulse"></div> TARGET READY
@@ -233,6 +232,8 @@ export default function App() {
                     ? `${info.last_game_ago}m ago` 
                     : isUnknown
                     ? 'No data available'
+                    : info?.status === 'RATE_LIMIT'
+                    ? 'waiting 60s...'
                     : 'fetching data'}
                 </p>
               </div>
@@ -241,7 +242,6 @@ export default function App() {
         })}
       </main>
 
-      {/* MODAL DE PARTIDA EN VIVO */}
       {selectedPlayer && data[selectedPlayer] && data[selectedPlayer].status === 'IN_GAME' && (
         <div 
           className="fixed inset-0 bg-[#030408]/90 backdrop-blur-xl flex items-center justify-center z-50 p-4"
