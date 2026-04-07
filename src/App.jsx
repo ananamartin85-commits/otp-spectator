@@ -8,9 +8,9 @@ const tierColors = {
 };
 
 const LiveParticipant = ({ part, patchVersion, targetPuuid }) => {
-  const isTarget = part.puuid === targetPuuid;
+  const isTracked = part.isTrackedPlayer || part.puuid === targetPuuid;
   return (
-    <div className={`flex items-center gap-3 p-2 rounded-xl border transition-colors ${isTarget ? 'bg-[#ffb800]/10 border-[#ffb800]/30' : 'bg-white/5 border-transparent'}`}>
+    <div className={`flex items-center gap-3 p-2 rounded-xl border transition-colors ${isTracked ? 'bg-[#ffb800]/10 border-[#ffb800]/30' : 'bg-white/5 border-transparent'}`}>
       <img 
         src={`https://ddragon.leagueoflegends.com/cdn/${patchVersion}/img/champion/${part.championName}.png`}
         alt={part.championName}
@@ -19,7 +19,7 @@ const LiveParticipant = ({ part, patchVersion, targetPuuid }) => {
       />
       <div className="flex flex-col min-w-0 flex-1">
         <div className="flex items-baseline gap-1 truncate">
-          <span className={`text-sm font-bold truncate uppercase tracking-tight ${isTarget ? 'text-[#ffb800]' : 'text-slate-200'}`}>
+          <span className={`text-sm font-bold truncate uppercase tracking-tight ${isTracked ? 'text-[#ffb800]' : 'text-slate-200'}`}>
             {part.summonerName}
           </span>
           <span className="text-[9px] font-bold text-[#c8aa6e] opacity-60 uppercase">
@@ -61,10 +61,10 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    fetch("https://otp-spectator-backend.onrender.com/api/init-targets")
+    fetch("https://otp-spectator-backend.onrender.com/api/roster")
       .then(res => res.json())
       .then(setOtpList)
-      .catch(e => console.error("Error cargando objetivos", e));
+      .catch(e => console.error("Error cargando el roster", e));
   }, []);
 
   const fetchData = async () => {
@@ -97,9 +97,9 @@ export default function App() {
     <div className="min-h-screen p-6 md:p-10 selection:bg-[#ffb800] selection:text-black">
       <header className="max-w-7xl mx-auto mb-16 flex flex-col items-center border-b border-[#1e2328] pb-10">
           <h1 className="text-5xl font-extrabold tracking-tighter text-white italic flex items-center justify-center gap-2">
-            SPECTATE <span className="text-cyan-400">TOOL</span>
+            ESPORTS <span className="text-cyan-400">HUB</span>
           </h1>
-          <p className="text-[#c8aa6e] text-xs font-bold tracking-[0.5em] uppercase mt-2 opacity-80">Educational Dashboard v3.5 (Bypass Mode)</p>
+          <p className="text-[#c8aa6e] text-xs font-bold tracking-[0.5em] uppercase mt-2 opacity-80">Roster & Analytics Dashboard</p>
           
           <div className="flex bg-[#0d1016] rounded-full p-1.5 border border-[#1e2328] mt-8 shadow-lg">
             <button onClick={() => setActiveTab('PRO')} className={`px-8 py-2.5 rounded-full text-xs font-black uppercase tracking-[0.15em] transition-all duration-300 ${activeTab === 'PRO' ? 'bg-[#c8aa6e] text-black shadow-[0_0_15px_rgba(200,170,110,0.4)]' : 'text-slate-500 hover:text-slate-300'}`}>
@@ -119,7 +119,6 @@ export default function App() {
           let isUnknown = info?.status === 'UNKNOWN';
           let isRateLimit = info?.status === 'RATE_LIMIT';
 
-          // HACK ANTI-RIOT: Si Riot miente con OFFLINE, revisamos las partidas de todos los demás para buscar al jugador escondido
           if (!isPlaying) {
              const hiddenMatch = Object.values(data).find(d => 
                  d?.status === 'IN_GAME' && d.participants?.some(p => p.puuid === otp.puuid)
@@ -164,7 +163,7 @@ export default function App() {
                   ) : isRateLimit ? (
                     <div className="bg-red-900/30 text-red-500 text-[9px] font-black px-3 py-1 rounded uppercase tracking-wider inline-flex items-center gap-1.5 border border-red-900/50">API LIMIT</div>
                   ) : isQueue ? (
-                    <div className="bg-red-500/10 text-red-400 text-[9px] font-black px-3 py-1 rounded uppercase tracking-wider inline-flex items-center gap-1.5"><div className="w-1.5 h-1.5 bg-red-500 rounded-full animate-pulse"></div> TARGET READY</div>
+                    <div className="bg-red-500/10 text-red-400 text-[9px] font-black px-3 py-1 rounded uppercase tracking-wider inline-flex items-center gap-1.5"><div className="w-1.5 h-1.5 bg-red-500 rounded-full animate-pulse"></div> EN QUEUE</div>
                   ) : isOffline ? (
                     <div className="text-slate-600 text-[9px] font-black px-3 py-1 uppercase tracking-wider inline-flex items-center gap-1.5">IDLE</div>
                   ) : isUnknown ? (
@@ -183,7 +182,6 @@ export default function App() {
         })}
       </main>
 
-      {/* MODAL IN-GAME CON FIX DE CROSS-REFERENCE */}
       {selectedPlayer && (() => {
         const otp = otpList.find(o => o.name === selectedPlayer);
         if (!otp) return null;
