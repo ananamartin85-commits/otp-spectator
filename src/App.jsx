@@ -25,7 +25,6 @@ export default function App() {
   const [patchVersion, setPatchVersion] = useState("14.7.1");
   const [activeTab, setActiveTab] = useState('PRO');
 
-  // Buscar último parche para las imágenes
   useEffect(() => {
     fetch("https://ddragon.leagueoflegends.com/api/versions.json")
       .then(res => res.json())
@@ -33,16 +32,15 @@ export default function App() {
       .catch(e => console.error("Error buscando parche", e));
   }, []);
 
-  // La nueva función de lectura rápida (Lee al motor cada 10 segundos)
   const fetchRosterLive = () => {
     fetch(`https://otp-spectator-backend.onrender.com/api/roster_live?t=${new Date().getTime()}`)
       .then(res => res.json())
       .then(data => setRoster(data))
-      .catch(e => console.error("Error leyendo el motor de fondo", e));
+      .catch(e => console.error("Error leyendo el motor", e));
   };
 
   useEffect(() => {
-    fetchRosterLive(); // Primera lectura instantánea
+    fetchRosterLive(); 
     const interval = setInterval(fetchRosterLive, 10000); 
     return () => clearInterval(interval);
   }, []);
@@ -69,21 +67,35 @@ export default function App() {
 
       <main className="max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-5">
         {displayedPlayers.map((player) => {
-          const liveData = player.liveData || {};
-          const isPlaying = liveData.status === 'IN_GAME';
-          const isOffline = liveData.status === 'OFFLINE';
-          const isScanning = liveData.status === 'SCANNING';
+          let liveData = player.liveData || {};
+          let isPlaying = liveData.status === 'IN_GAME';
+          let isOffline = liveData.status === 'OFFLINE';
+          let isScanning = liveData.status === 'SCANNING';
           
+          // HACK INVISIBLE: Si Riot miente con Offline, buscamos a este jugador en la partida de otros
+          if (!isPlaying) {
+             const hiddenMatchPlayer = roster.find(p => 
+                 p.liveData?.status === 'IN_GAME' && 
+                 p.liveData.participants?.some(part => part.puuid === player.puuid)
+             );
+             if (hiddenMatchPlayer) {
+                 liveData = hiddenMatchPlayer.liveData;
+                 isPlaying = true;
+                 isOffline = false;
+                 isScanning = false;
+             }
+          }
+
           let displayChamp = player.defaultChamp;
           if (isPlaying && liveData.participants) {
-            const target = liveData.participants.find(p => p.isTrackedPlayer);
+            const target = liveData.participants.find(p => p.puuid === player.puuid) || liveData.participants.find(p => p.isTrackedPlayer);
             if (target) displayChamp = target.championName;
           }
 
           return (
             <div 
               key={player.name} 
-              onClick={() => isPlaying ? setSelectedPlayer(player) : null}
+              onClick={() => isPlaying ? setSelectedPlayer({ ...player, liveData }) : null}
               className={`aspect-[10/11] bg-[#0d1016] rounded-3xl p-6 flex flex-col items-center justify-center transition-all duration-300 relative group overflow-hidden border-gradient hover:-translate-y-1 ${
                 isPlaying ? 'inner-glow-gold cursor-pointer hover:bg-[#11161d]' : 'hover:border-slate-600'
               }`}
@@ -120,7 +132,7 @@ export default function App() {
       {/* MODAL IN-GAME */}
       {selectedPlayer && selectedPlayer.liveData?.status === 'IN_GAME' && (() => {
         const matchInfo = selectedPlayer.liveData;
-        const targetPart = matchInfo.participants.find(p => p.isTrackedPlayer);
+        const targetPart = matchInfo.participants.find(p => p.puuid === selectedPlayer.puuid) || matchInfo.participants.find(p => p.isTrackedPlayer);
 
         return (
           <div className="fixed inset-0 bg-[#030408]/90 backdrop-blur-xl flex items-center justify-center z-50 p-4" onClick={() => setSelectedPlayer(null)}>
@@ -141,7 +153,7 @@ export default function App() {
                     <p className="text-xs font-black text-blue-400 uppercase tracking-[0.2em] px-2 flex items-center gap-2"><span className="w-1.5 h-1.5 bg-blue-500 rounded-full"></span> Blue Team</p>
                   </div>
                   {matchInfo.participants.filter(p => p.teamId === 100).map((p, i) => (
-                    <LiveParticipant key={i} part={p} patchVersion={patchVersion} />
+                    <LiveParticipant key={i} part={{...p, isTrackedPlayer: p.puuid === selectedPlayer.puuid || p.isTrackedPlayer}} patchVersion={patchVersion} />
                   ))}
                 </div>
 
@@ -150,7 +162,7 @@ export default function App() {
                     <p className="text-xs font-black text-red-500 uppercase tracking-[0.2em] px-2 flex items-center gap-2 justify-end self-end"><span className="w-1.5 h-1.5 bg-red-500 rounded-full"></span> Red Team</p>
                   </div>
                   {matchInfo.participants.filter(p => p.teamId === 200).map((p, i) => (
-                    <LiveParticipant key={i} part={p} patchVersion={patchVersion} />
+                    <LiveParticipant key={i} part={{...p, isTrackedPlayer: p.puuid === selectedPlayer.puuid || p.isTrackedPlayer}} patchVersion={patchVersion} />
                   ))}
                 </div>
               </div>
