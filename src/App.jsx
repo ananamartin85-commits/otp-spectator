@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 
 const LiveParticipant = ({ part, patchVersion }) => {
-  // Limpiar nombre de campeón para DDragon (ej: "Lee Sin" -> "LeeSin")
+  
   const champImg = part.championName.replace(/\s|'|\./g, '');
   
   return (
@@ -34,7 +34,7 @@ export default function App() {
   const [patchVersion, setPatchVersion] = useState("14.7.1");
   const [loading, setLoading] = useState(true);
 
-  // 1. Cargar Versión de Parche
+  
   useEffect(() => {
     fetch("https://ddragon.leagueoflegends.com/api/versions.json")
       .then(res => res.json())
@@ -42,7 +42,7 @@ export default function App() {
       .catch(console.error);
   }, []);
 
-  // 2. Cargar Lista de OTPs inicial
+  
   useEffect(() => {
     fetch("https://otp-spectator-backend.onrender.com/api/init-targets")
       .then(res => res.json())
@@ -56,7 +56,6 @@ export default function App() {
       });
   }, []);
 
-  // 3. Función de escaneo optimizada
   const fetchData = useCallback(async () => {
     if (otpList.length === 0) return;
 
@@ -80,7 +79,7 @@ export default function App() {
     setData(prev => ({ ...prev, ...nextData }));
   }, [otpList]);
 
-  // 4. Intervalo de actualización (Cada 60 segundos)
+  
   useEffect(() => {
     if (otpList.length > 0) {
       fetchData();
@@ -165,7 +164,6 @@ export default function App() {
         })}
       </main>
 
-      {/* Modal - Solo renderiza si hay alguien seleccionado */}
       {selectedPlayer && data[selectedPlayer]?.status === 'IN_GAME' && (
         <div className="fixed inset-0 bg-black/90 backdrop-blur-md flex items-center justify-center z-50 p-4" onClick={() => setSelectedPlayer(null)}>
           <div className="bg-[#0d1016] border border-[#1e2328] rounded-3xl p-8 w-full max-w-4xl" onClick={e => e.stopPropagation()}>
