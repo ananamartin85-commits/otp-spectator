@@ -6,14 +6,12 @@
 
 body {
   margin: 0;
-  /* Fondo ultra oscuro Volticons con ruido sutil */
   background-color: #030408;
   color: #a0a0a0;
   font-family: 'Montserrat', sans-serif;
   overflow-x: hidden;
 }
 
-/* Brillo interior sutil Hextech (Gold y Cyan) */
 .inner-glow-cyan {
   box-shadow: inset 0 0 15px rgba(6, 182, 212, 0.15);
 }
@@ -22,7 +20,6 @@ body {
   box-shadow: inset 0 0 15px rgba(200, 170, 110, 0.15);
 }
 
-/* Efecto de borde degradado sutil */
 .border-gradient {
   border: 1px solid transparent;
   background-image: linear-gradient(#030408, #030408), linear-gradient(135deg, #2a3655 0%, #1a2133 100%);
