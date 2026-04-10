@@ -109,7 +109,7 @@ export default function App() {
           <h1 className="text-5xl font-extrabold tracking-tighter text-white italic">
             SPECTATE <span className="text-cyan-400">TOOL</span>
           </h1>
-          <p className="text-[#c8aa6e] text-xs font-bold tracking-[0.5em] uppercase mt-2 opacity-80">Live Tracker v2.5</p>
+          <p className="text-[#c8aa6e] text-xs font-bold tracking-[0.5em] uppercase mt-2 opacity-80">Tote tracker</p>
       </header>
 
       <main className="max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-5">
