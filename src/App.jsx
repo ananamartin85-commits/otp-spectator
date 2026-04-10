@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 
 const LiveParticipant = ({ part, patchVersion }) => {
-  
   const champImg = part.championName.replace(/\s|'|\./g, '');
   
   return (
@@ -21,7 +20,18 @@ const LiveParticipant = ({ part, patchVersion }) => {
             #{part.summonerTag}
           </span>
         </div>
-        <span className="text-[10px] text-slate-500 uppercase tracking-wider font-medium">{part.championName}</span>
+        
+        <div className="text-[10px] text-slate-500 uppercase tracking-wider font-medium flex items-center gap-1.5 truncate">
+          <span className="truncate">{part.championName}</span>
+          
+          {part.proTag && (
+            <>
+              <span className="text-slate-700 mx-0.5">|</span>
+              <span className="text-red-600 font-black">P</span>
+              <span className="text-slate-400 font-bold truncate">({part.proTag})</span>
+            </>
+          )}
+        </div>
       </div>
     </div>
   );
@@ -34,7 +44,6 @@ export default function App() {
   const [patchVersion, setPatchVersion] = useState("14.7.1");
   const [loading, setLoading] = useState(true);
 
-  
   useEffect(() => {
     fetch("https://ddragon.leagueoflegends.com/api/versions.json")
       .then(res => res.json())
@@ -42,7 +51,6 @@ export default function App() {
       .catch(console.error);
   }, []);
 
-  
   useEffect(() => {
     fetch("https://otp-spectator-backend.onrender.com/api/init-targets")
       .then(res => res.json())
@@ -79,7 +87,6 @@ export default function App() {
     setData(prev => ({ ...prev, ...nextData }));
   }, [otpList]);
 
-  
   useEffect(() => {
     if (otpList.length > 0) {
       fetchData();
