@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 
 const LiveParticipant = ({ part, patchVersion }) => {
-  const champImg = part.championName.replace(/\s|'|\./g, '');
+  const champImg = part?.championName?.replace(/\s|'|\./g, '') || 'Teemo';
   
   return (
     <div className={`flex items-center gap-3 p-2 rounded-xl border ${part.isTarget ? 'bg-[#ffb800]/10 border-[#ffb800]/30' : 'bg-white/5 border-transparent'}`}>
@@ -140,9 +140,11 @@ export default function App() {
           const info = data[otp.name];
           const isPlaying = info?.status === 'IN_GAME';
           const isQueue = info?.status === 'OFFLINE' && info?.last_game_ago < 10;
-          const stats = info?.stats;
           
-          let displayChamp = otp.defaultChamp;
+          // PROTECCIÓN CONTRA UNDEFINED EN STATS
+          const stats = info?.stats || {};
+          
+          let displayChamp = otp.defaultChamp || 'Teemo';
           if (isPlaying && info.participants) {
             const t = info.participants.find(p => p.isTarget);
             if (t) displayChamp = t.championName;
@@ -180,7 +182,7 @@ export default function App() {
                     alt="Champ"
                     onError={(e) => { e.target.src = "https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/champion-icons/-1.png"; }}
                   />
-                  {stats?.tier !== "UNRANKED" && (
+                  {stats?.tier && stats.tier !== "UNRANKED" && (
                     <div className="absolute -bottom-1 -right-1 bg-black border border-[#1e2328] rounded px-1.5 py-0.5 text-[8px] font-black text-cyan-400">
                       {stats.tier[0]}{stats.rank}
                     </div>
@@ -190,9 +192,9 @@ export default function App() {
               <div className="text-center z-10 w-full">
                 <h2 className="text-xs font-black text-white truncate uppercase tracking-tighter">{otp.name}</h2>
                 <div className="flex items-center justify-center gap-1 opacity-50 mb-3">
-                   <span className="text-[9px] text-[#c8aa6e] font-bold">#{otp.tag}</span>
-                   <span className="text-[9px] text-slate-500">•</span>
-                   <span className="text-[9px] text-slate-500 font-bold">{otp.role}</span>
+                    <span className="text-[9px] text-[#c8aa6e] font-bold">#{otp.tag}</span>
+                    <span className="text-[9px] text-slate-500">•</span>
+                    <span className="text-[9px] text-slate-500 font-bold">{otp.role}</span>
                 </div>
                 
                 {isPlaying ? (
@@ -205,7 +207,7 @@ export default function App() {
                 }
                 
                 <p className="text-[9px] text-slate-500 mt-2 font-medium">
-                  {isPlaying ? `${info.time}m elapsed` : stats?.lp ? `${stats.lp} LP` : '...'}
+                  {isPlaying ? `${info.time}m elapsed` : stats?.lp !== undefined ? `${stats.lp} LP` : '...'}
                 </p>
               </div>
             </div>
@@ -230,7 +232,7 @@ export default function App() {
                 <p className="text-[10px] font-black text-blue-400 uppercase mb-4 tracking-widest flex items-center gap-2">
                   <span className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-pulse" /> Blue Team
                 </p>
-                {data[selectedPlayer].participants.filter(p => p.teamId === 100).map((p, i) => (
+                {data[selectedPlayer].participants?.filter(p => p.teamId === 100).map((p, i) => (
                   <LiveParticipant key={i} part={p} patchVersion={patchVersion} />
                 ))}
               </div>
@@ -238,7 +240,7 @@ export default function App() {
                 <p className="text-[10px] font-black text-red-500 uppercase mb-4 tracking-widest flex items-center gap-2 justify-end">
                    Red Team <span className="w-1.5 h-1.5 bg-red-500 rounded-full animate-pulse" />
                 </p>
-                {data[selectedPlayer].participants.filter(p => p.teamId === 200).map((p, i) => (
+                {data[selectedPlayer].participants?.filter(p => p.teamId === 200).map((p, i) => (
                   <LiveParticipant key={i} part={p} patchVersion={patchVersion} />
                 ))}
               </div>
