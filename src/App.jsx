@@ -139,9 +139,13 @@ export default function App() {
         {filteredOTPs.map((otp) => {
           const info = data[otp.name];
           const isPlaying = info?.status === 'IN_GAME';
-          const isQueue = info?.status === 'OFFLINE' && info?.last_game_ago < 10;
           
-          // PROTECCIÓN CONTRA UNDEFINED EN STATS
+          // LÓGICA DE TARGET READY CORREGIDA: 
+          // Solo si está OFFLINE, tiene un valor de tiempo válido (>0) y fue hace menos de 10 min.
+          const isQueue = info?.status === 'OFFLINE' && 
+                          info?.last_game_ago > 0 && 
+                          info?.last_game_ago < 10;
+          
           const stats = info?.stats || {};
           
           let displayChamp = otp.defaultChamp || 'Teemo';
@@ -157,7 +161,7 @@ export default function App() {
               onClick={() => isPlaying && setSelectedPlayer(otp.name)}
               className={`aspect-[10/12] bg-[#0d1016] rounded-3xl p-5 flex flex-col items-center justify-between transition-all duration-300 relative group overflow-hidden border border-[#1e2328] ${
                 isPlaying ? 'ring-2 ring-[#c8aa6e]/50 cursor-pointer hover:bg-[#11161d]' : 
-                isQueue ? 'border-red-500 animate-pulse' : 'opacity-80 hover:opacity-100'
+                isQueue ? 'border-red-500 animate-pulse bg-red-500/5' : 'opacity-80 hover:opacity-100'
               }`}
             >
               <img 
@@ -200,7 +204,7 @@ export default function App() {
                 {isPlaying ? (
                     <span className="bg-[#c8aa6e]/20 text-[#c8aa6e] text-[8px] font-black px-2 py-0.5 rounded tracking-widest uppercase">In Game</span>
                   ) : isQueue ? (
-                    <span className="bg-red-500/20 text-red-400 text-[8px] font-black px-2 py-0.5 rounded tracking-widest uppercase">Target Ready</span>
+                    <span className="bg-red-500 text-white text-[8px] font-black px-2 py-0.5 rounded tracking-widest uppercase shadow-[0_0_10px_rgba(239,68,68,0.5)]">Target Ready</span>
                   ) : (
                     <span className="text-slate-600 text-[8px] font-black tracking-widest uppercase">Offline</span>
                   )
